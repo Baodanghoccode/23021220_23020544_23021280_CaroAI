@@ -1,8 +1,8 @@
 # CaroAI in Python
 
-This is a simple [Caro](https://vi.wikipedia.org/wiki/C%E1%BB%9D_ca-r%C3%B4) AI implemented in Python.
+This project is a Caro AI practice assignment for the Artificial Intelligence course. It implements a playable Caro game between a human player and the computer.
 
-The current version focuses on **Level 1**: the AI uses **depth-limited Minimax** with a heuristic evaluation function to choose its moves.
+The current version covers **Level 2**: the AI can use either **depth-limited Minimax** or **Alpha-Beta pruning** with the same search depth and heuristic evaluation function.
 
 ## 1. Overview
 
@@ -19,15 +19,15 @@ The current version focuses on **Level 1**: the AI uses **depth-limited Minimax*
 
 ```text
 23021220_23020544_23021280_CaroAI/
-├── source_code/
-│   ├── board.py        # Board representation, legal moves, win/draw checking
-│   ├── config.py       # Game settings, colors, search depth
-│   ├── evaluation.py   # Heuristic board evaluation
-│   ├── game.py         # Pygame interface and main game loop
-│   ├── main.py         # Program entry point
-│   └── minimax.py      # Minimax algorithm and move statistics
-├── requirements.txt    # Required Python packages
-└── README.md
+|-- source_code/
+|   |-- board.py        # Board representation, legal moves, win/draw checking
+|   |-- config.py       # Game settings, colors, search depth
+|   |-- evaluation.py   # Heuristic board evaluation
+|   |-- game.py         # Pygame interface and main game loop
+|   |-- main.py         # Program entry point
+|   `-- minimax.py      # Minimax, Alpha-Beta, and move statistics
+|-- requirements.txt    # Required Python packages
+`-- README.md
 ```
 
 ## 3. Installation
@@ -36,10 +36,6 @@ Python 3.8 or newer is recommended.
 
 ```bash
 python --version
-```
-
-Install dependencies:
-```bash
 pip install -r requirements.txt
 ```
 
@@ -49,7 +45,7 @@ Main dependency:
 pygame>=2.0.0
 ```
 
-## 4. How to Run the game
+## 4. How to Run
 
 From the repository root, run:
 
@@ -61,17 +57,22 @@ After the game window opens:
 
 - Click an empty cell to place your `X`.
 - The computer automatically calculates and places its `O`.
-- Press `R` or click the `Choi lai [R]` button to restart the game.
+- Press `R` or click the `Restart [R]` button to restart the game.
+- Press `M` or click the `Mode` button to switch the AI mode between Minimax and Alpha-Beta.
 
-## 5. Implemented Algorithm
+## 5. Implemented Algorithms
 
-The AI uses Minimax for a two-player zero-sum game:
+The AI supports two adversarial search algorithms for a two-player zero-sum game:
 
+- **Minimax**: explores possible human and computer moves up to a depth limit.
+- **Alpha-Beta pruning**: uses the same Minimax logic but cuts branches when `beta <= alpha`.
 - The computer is the MAX player and chooses the move with the highest evaluation value.
 - The human is the MIN player and is assumed to choose moves that reduce the computer's advantage.
 - If the state is win, loss, or draw, the algorithm returns a terminal value.
 - If the search reaches the depth limit, the algorithm uses the heuristic evaluation function.
 - Candidate moves are generated near existing pieces to reduce the search space.
+- Candidate moves are ordered by distance to the board center before expansion.
+- Both algorithms use the same search depth and evaluation function when compared.
 
 Main configuration in `source_code/config.py`:
 
@@ -104,31 +105,38 @@ After each computer move, the interface displays:
 - The evaluation value.
 - The search depth.
 - The number of explored states.
-- The running time for the move calculation.
+- The running time for the selected algorithm.
+- A comparison row for Minimax and Alpha-Beta on the same board state.
+- The number of Alpha-Beta pruning cuts.
 
-These values support the assignment requirement for measuring and analyzing search performance.
+These values support the assignment requirement for measuring and comparing search performance.
 
 ## 8. Current Scope
 
-This version covers Level 1 requirements:
+This version covers Level 2 requirements:
 
 - 9x9 board.
 - Alternating turns between human and computer.
 - Invalid moves on occupied cells are rejected.
 - Game ends when a player gets 4 consecutive pieces or the board is full.
 - Depth-limited Minimax is implemented.
+- Alpha-Beta pruning is implemented.
+- The AI mode can be switched between Minimax and Alpha-Beta.
+- Both algorithms are run on the same current board state for comparison.
 - A heuristic evaluation function is implemented.
 - The selected move, value, depth, explored states, and running time are recorded.
 
-## 9. Possible extensions:
+## 9. Possible Level 3 Extensions
 
-- Implement Alpha-Beta pruning.
-- Allow choosing between Minimax and Alpha-Beta AI modes.
 - Prepare at least 5 test board states.
-- Compare explored states and running time between Minimax and Alpha-Beta.
-- Create an experiment table and analyze the effect of search depth.
+- Compare explored states and running time between Minimax and Alpha-Beta in a table.
+- Test multiple search depths, such as depth 1, 2, and 3.
+- Analyze whether Alpha-Beta chooses the same move as Minimax.
+- Analyze how search depth affects move quality.
+- Discuss strengths, limitations, and possible future improvements.
 
 ## 10. References
 - Minimax algorithm: https://en.wikipedia.org/wiki/Minimax
+- Alpha-Beta pruning algorithm: https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
 - Pygame documentation: https://www.pygame.org/docs/
 - Gomoku rules: https://en.wikipedia.org/wiki/Gomoku

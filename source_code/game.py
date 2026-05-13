@@ -1,317 +1,277 @@
 """
-Giao diện trò chơi Pygame
-Game UI and main game loop using Pygame
+Pygame interface and main loop for the Caro AI game.
 """
 
-import pygame
 import sys
-from config import (
-    BOARD_SIZE, WIN_COUNT, MARGIN, CELL_SIZE, BOARD_PX, WIN_W, WIN_H, INFO_HEIGHT,
-    C_BG, C_BOARD_BG, C_GRID, C_GRID_BOLD, C_X, C_O, C_WIN_LINE, C_TEXT, C_TEXT_DIM,
-    C_PANEL, C_BTN, C_BTN_HOVER, C_BTN_TEXT, C_STATUS_WIN, C_STATUS_LOSE, C_STATUS_DRAW,
-    C_HIGHLIGHT, EMPTY, HUMAN, AI, WINDOW_TITLE
-)
+
+import pygame
+
 from board import Board
-from minimax import ai_move, stats
+from config import (
+    AI,
+    BOARD_PX,
+    BOARD_SIZE,
+    C_BG,
+    C_BOARD_BG,
+    C_BTN,
+    C_BTN_HOVER,
+    C_BTN_TEXT,
+    C_GRID,
+    C_GRID_BOLD,
+    C_HIGHLIGHT,
+    C_O,
+    C_PANEL,
+    C_STATUS_DRAW,
+    C_STATUS_LOSE,
+    C_STATUS_WIN,
+    C_TEXT,
+    C_TEXT_DIM,
+    C_WIN_LINE,
+    C_X,
+    CELL_SIZE,
+    EMPTY,
+    HUMAN,
+    INFO_HEIGHT,
+    MARGIN,
+    WIN_COUNT,
+    WIN_H,
+    WIN_W,
+    WINDOW_TITLE,
+)
+from minimax import AI_MODES, ALPHA_BETA, ai_move, stats
 
 
 class Game:
-    """
-    Lớp quản lý trò chơi chính.
-    
-    Chức năng:
-    - Khởi tạo cửa sổ Pygame
-    - Vẽ bàn cờ và giao diện
-    - Xử lý sự kiện (click chuột, bàn phím)
-    - Quản lý vòng lặp trò chơi
-    """
+    """Main game controller."""
 
     def __init__(self):
-        """Khởi tạo trò chơi."""
-        # Tạo cửa sổ
         pygame.display.set_caption(WINDOW_TITLE)
         self.screen = pygame.display.set_mode((WIN_W, WIN_H))
         self.clock = pygame.time.Clock()
 
-        # Font cho text
         self.font_lg = pygame.font.SysFont("consolas", 22, bold=True)
         self.font_md = pygame.font.SysFont("consolas", 16)
         self.font_sm = pygame.font.SysFont("consolas", 13)
         self.font_btn = pygame.font.SysFont("consolas", 15, bold=True)
 
-        # Khởi tạo trò chơi
+        self.ai_mode = ALPHA_BETA
         self.reset()
 
     def reset(self):
-        """
-        Đặt lại trò chơi về trạng thái ban đầu.
-        Dùng khi bắt đầu hoặc chơi lại.
-        """
         self.board = Board()
-        self.turn = HUMAN              # Người chơi đi trước
+        self.turn = HUMAN
         self.game_over = False
-        self.winner = None              # None = hòa
-        self.win_cells = []             # Danh sách ô tạo đường thắng
-        self.last_move = None           # Nước đi cuối cùng
-        
-        # Đặt lại thống kê
-        stats["states"] = stats["value"] = stats["time"] = 0
-        stats["move"] = None
+        self.winner = None
+        self.win_cells = []
+        self.last_move = None
 
-    # ═════════════════════════════════════════════════════════════
+        stats["states"] = 0
+        stats["value"] = 0
+        stats["time"] = 0.0
+        stats["move"] = None
+        stats["comparison"] = {}
 
     def draw_board(self):
-        """Vẽ bàn cờ và các quân cờ."""
-        # Vẽ hình chữ nhật nền bàn cờ
         board_rect = pygame.Rect(MARGIN, MARGIN, BOARD_PX, BOARD_PX)
         pygame.draw.rect(self.screen, C_BOARD_BG, board_rect, border_radius=4)
 
-        # Vẽ lưới
         for i in range(BOARD_SIZE + 1):
-            # Viền ngoài đậm hơn
-            is_bold = (i == 0 or i == BOARD_SIZE)
-            color = C_GRID_BOLD if is_bold else C_GRID
-            width = 2 if is_bold else 1
-            
-            # Vẽ đường ngang
+            is_border = i == 0 or i == BOARD_SIZE
+            color = C_GRID_BOLD if is_border else C_GRID
+            width = 2 if is_border else 1
+
             y = MARGIN + i * CELL_SIZE
-            pygame.draw.line(self.screen, color,
-                             (MARGIN, y), (MARGIN + BOARD_PX, y), width)
-            
-            # Vẽ đường dọc
+            pygame.draw.line(self.screen, color, (MARGIN, y), (MARGIN + BOARD_PX, y), width)
+
             x = MARGIN + i * CELL_SIZE
-            pygame.draw.line(self.screen, color,
-                             (x, MARGIN), (x, MARGIN + BOARD_PX), width)
+            pygame.draw.line(self.screen, color, (x, MARGIN), (x, MARGIN + BOARD_PX), width)
 
-        # Highlight ô vừa đánh (bán trong suốt)
         if self.last_move:
-            lr, lc = self.last_move
-            highlight_surface = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
-            highlight_surface.fill(C_HIGHLIGHT)
-            self.screen.blit(highlight_surface, (MARGIN + lc * CELL_SIZE, MARGIN + lr * CELL_SIZE))
+            row, col = self.last_move
+            highlight = pygame.Surface((CELL_SIZE, CELL_SIZE), pygame.SRCALPHA)
+            highlight.fill(C_HIGHLIGHT)
+            self.screen.blit(highlight, (MARGIN + col * CELL_SIZE, MARGIN + row * CELL_SIZE))
 
-        # Vẽ các quân cờ trên bàn
-        for r in range(BOARD_SIZE):
-            for c in range(BOARD_SIZE):
-                player = self.board.grid[r][c]
+        for row in range(BOARD_SIZE):
+            for col in range(BOARD_SIZE):
+                player = self.board.grid[row][col]
                 if player == EMPTY:
                     continue
-                
-                # Tính tọa độ pixel tâm ô
-                cx, cy = self._px(r, c)
+
+                cx, cy = self._px(row, col)
                 radius = CELL_SIZE // 2 - 10
-                
+
                 if player == HUMAN:
-                    # Vẽ X (hai đường chéo)
-                    color = C_X
                     offset = radius
-                    pygame.draw.line(self.screen, color,
-                                     (cx - offset, cy - offset), (cx + offset, cy + offset), 3)
-                    pygame.draw.line(self.screen, color,
-                                     (cx + offset, cy - offset), (cx - offset, cy + offset), 3)
+                    pygame.draw.line(self.screen, C_X, (cx - offset, cy - offset), (cx + offset, cy + offset), 3)
+                    pygame.draw.line(self.screen, C_X, (cx + offset, cy - offset), (cx - offset, cy + offset), 3)
                 else:
-                    # Vẽ O (hình tròn)
                     pygame.draw.circle(self.screen, C_O, (cx, cy), radius, 3)
 
-        # Vẽ đường thắng nếu có
         if self.win_cells and len(self.win_cells) >= 2:
-            start_pos = self._px(*self.win_cells[0])
-            end_pos = self._px(*self.win_cells[-1])
-            pygame.draw.line(self.screen, C_WIN_LINE, start_pos, end_pos, 5)
-            # Vẽ các điểm tròn tại các ô thắng
-            for wr, wc in self.win_cells:
-                pygame.draw.circle(self.screen, C_WIN_LINE, self._px(wr, wc), 6)
+            pygame.draw.line(self.screen, C_WIN_LINE, self._px(*self.win_cells[0]), self._px(*self.win_cells[-1]), 5)
+            for row, col in self.win_cells:
+                pygame.draw.circle(self.screen, C_WIN_LINE, self._px(row, col), 6)
 
     def draw_info(self):
-        """Vẽ panel thông tin dưới bàn cờ."""
         panel_y = MARGIN * 2 + BOARD_PX
-        
-        # Vẽ nền panel
-        panel_rect = pygame.Rect(0, panel_y, WIN_W, INFO_HEIGHT)
-        pygame.draw.rect(self.screen, C_PANEL, panel_rect)
+        pygame.draw.rect(self.screen, C_PANEL, pygame.Rect(0, panel_y, WIN_W, INFO_HEIGHT))
         pygame.draw.line(self.screen, C_GRID_BOLD, (0, panel_y), (WIN_W, panel_y), 1)
 
         x0, y0 = 18, panel_y + 12
 
-        # ────────────── Trạng thái trò chơi ──────────────
         if self.game_over:
             if self.winner == HUMAN:
-                msg = "Bạn thắng!  X WIN"
-                color = C_STATUS_WIN
+                message, color = "You win!  X WIN", C_STATUS_WIN
             elif self.winner == AI:
-                msg = "Máy thắng!  O WIN"
-                color = C_STATUS_LOSE
+                message, color = "Computer wins!  O WIN", C_STATUS_LOSE
             else:
-                msg = "Hòa!  DRAW"
-                color = C_STATUS_DRAW
+                message, color = "Draw!", C_STATUS_DRAW
+        elif self.turn == HUMAN:
+            message, color = "Your turn [X]", C_X
         else:
-            if self.turn == HUMAN:
-                msg, color = "Lượt của bạn  [X]", C_X
-            else:
-                msg, color = "Máy đang suy nghĩ...  [O]", C_O
+            message, color = "Computer thinking... [O]", C_O
 
-        surf = self.font_lg.render(msg, True, color)
-        self.screen.blit(surf, (x0, y0))
+        self.screen.blit(self.font_lg.render(message, True, color), (x0, y0))
 
-        # ────────────── Thống kê nước đi máy ──────────────
         y0 += 32
         if stats["move"]:
-            r, c = stats["move"]
-            line1 = f"Nước đi: ({r},{c})   Giá trị: {stats['value']:+d}   Độ sâu: {stats['depth']}"
-            line2 = f"Trạng thái đã xét: {stats['states']:,}   Thời gian: {stats['time']:.3f}s"
+            row, col = stats["move"]
+            line1 = f"Move: ({row},{col})  Value: {stats['value']:+d}  Depth: {stats['depth']}"
+            line2 = f"{self._mode_label()}: {stats['states']:,} states  {stats['time']:.3f}s"
             self.screen.blit(self.font_md.render(line1, True, C_TEXT), (x0, y0))
             self.screen.blit(self.font_md.render(line2, True, C_TEXT_DIM), (x0, y0 + 20))
 
-        # ────────────── Ghi chú ──────────────
-        y0 += 50
-        hint = "X = Người chơi   O = Máy (Pure Minimax)   4 quân liên tiếp = THẮNG"
-        self.screen.blit(self.font_sm.render(hint, True, C_TEXT_DIM), (x0, y0))
+            comparison = stats.get("comparison", {})
+            mini = comparison.get("minimax")
+            ab = comparison.get("alpha_beta")
+            if mini and ab:
+                line3 = (
+                    f"MM: move {mini['move']}  val {mini['value']:+d}  "
+                    f"states {mini['states']:,}  {mini['time']:.3f}s"
+                )
+                line4 = (
+                    f"AB: move {ab['move']}  val {ab['value']:+d}  "
+                    f"states {ab['states']:,}  cuts {ab['prunes']:,}  {ab['time']:.3f}s"
+                )
+                self.screen.blit(self.font_sm.render(line3, True, C_TEXT), (x0, y0 + 43))
+                self.screen.blit(self.font_sm.render(line4, True, C_TEXT_DIM), (x0, y0 + 61))
 
-        # ────────────── Nút chơi lại ──────────────
-        btn_w, btn_h = 140, 34
-        btn_x = WIN_W - btn_w - 20
-        btn_y = panel_y + (INFO_HEIGHT - btn_h) // 2
-        self.btn_rect = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
-        
-        # Kiểm tra hover
-        mx, my = pygame.mouse.get_pos()
-        btn_color = C_BTN_HOVER if self.btn_rect.collidepoint(mx, my) else C_BTN
-        
-        # Vẽ nút
-        pygame.draw.rect(self.screen, btn_color, self.btn_rect, border_radius=6)
-        pygame.draw.rect(self.screen, C_GRID_BOLD, self.btn_rect, 1, border_radius=6)
-        
-        # Vẽ text trên nút
-        lbl = self.font_btn.render("Chơi lại [R]", True, C_BTN_TEXT)
-        self.screen.blit(lbl, (btn_x + (btn_w - lbl.get_width()) // 2,
-                                btn_y + (btn_h - lbl.get_height()) // 2))
+        hint = f"X = Human   O = Computer   {WIN_COUNT} in a row wins"
+        self.screen.blit(self.font_sm.render(hint, True, C_TEXT_DIM), (x0, panel_y + INFO_HEIGHT - 26))
 
-    # ═════════════════════════════════════════════════════════════
+        btn_w, btn_h = 150, 34
+        btn_x = WIN_W - btn_w - 18
+        self.mode_btn_rect = pygame.Rect(btn_x, panel_y + 18, btn_w, btn_h)
+        self.btn_rect = pygame.Rect(btn_x, panel_y + 60, btn_w, btn_h)
 
-    def _px(self, r, c):
-        """
-        Chuyển tọa độ lưới (row, col) → tọa độ pixel (x, y) tâm ô.
-        
-        Args:
-            r, c: Hàng và cột trên lưới
-            
-        Returns:
-            tuple: (x, y) tọa độ pixel
-        """
-        x = MARGIN + c * CELL_SIZE + CELL_SIZE // 2
-        y = MARGIN + r * CELL_SIZE + CELL_SIZE // 2
+        self._draw_button(self.mode_btn_rect, f"Mode: {self._mode_label()}")
+        self._draw_button(self.btn_rect, "Restart [R]")
+
+    def _mode_label(self):
+        return "Alpha-Beta" if self.ai_mode == ALPHA_BETA else "Minimax"
+
+    def _toggle_ai_mode(self):
+        idx = AI_MODES.index(self.ai_mode)
+        self.ai_mode = AI_MODES[(idx + 1) % len(AI_MODES)]
+        stats["mode"] = self.ai_mode
+
+    def _draw_button(self, rect, text):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        button_color = C_BTN_HOVER if rect.collidepoint(mouse_x, mouse_y) else C_BTN
+        pygame.draw.rect(self.screen, button_color, rect, border_radius=6)
+        pygame.draw.rect(self.screen, C_GRID_BOLD, rect, 1, border_radius=6)
+
+        label = self.font_btn.render(text, True, C_BTN_TEXT)
+        self.screen.blit(
+            label,
+            (
+                rect.x + (rect.width - label.get_width()) // 2,
+                rect.y + (rect.height - label.get_height()) // 2,
+            ),
+        )
+
+    def _px(self, row, col):
+        x = MARGIN + col * CELL_SIZE + CELL_SIZE // 2
+        y = MARGIN + row * CELL_SIZE + CELL_SIZE // 2
         return x, y
 
-    def _cell_from_mouse(self, mx, my):
-        """
-        Chuyển tọa độ chuột → tọa độ lưới (row, col).
-        
-        Args:
-            mx, my: Tọa độ chuột pixel
-            
-        Returns:
-            tuple: (r, c) tọa độ lưới
-        """
-        c = (mx - MARGIN) // CELL_SIZE
-        r = (my - MARGIN) // CELL_SIZE
-        return r, c
+    def _cell_from_mouse(self, mouse_x, mouse_y):
+        col = (mouse_x - MARGIN) // CELL_SIZE
+        row = (mouse_y - MARGIN) // CELL_SIZE
+        return row, col
 
-    # ═════════════════════════════════════════════════════════════
+    def _finish_turn_if_needed(self, player):
+        won, cells = self.board.check_win(player)
+        if won:
+            self.game_over = True
+            self.winner = player
+            self.win_cells = cells
+            return True
+
+        if self.board.is_full():
+            self.game_over = True
+            self.winner = None
+            return True
+
+        return False
 
     def run(self):
-        """
-        Vòng lặp chính của trò chơi.
-        
-        Luồng:
-        1. Vẽ bàn cờ và giao diện
-        2. Nếu đến lượt AI, tính toán nước đi
-        3. Xử lý sự kiện (click chuột, bàn phím)
-        4. Kiểm tra thắng/hòa
-        5. Lặp lại
-        """
         ai_thinking = False
 
         while True:
-            # ────────────── Vẽ giao diện ──────────────
             self.screen.fill(C_BG)
             self.draw_board()
             self.draw_info()
             pygame.display.flip()
-            self.clock.tick(30)  # 30 FPS
+            self.clock.tick(30)
 
-            # ────────────── AI đánh (nếu tới lượt AI) ──────────────
             if not self.game_over and self.turn == AI and not ai_thinking:
                 ai_thinking = True
-                
-                # Vẽ lại để thể hiện "đang suy nghĩ..."
+
                 self.screen.fill(C_BG)
                 self.draw_board()
                 self.draw_info()
                 pygame.display.flip()
 
-                # Tính toán nước đi AI
-                move = ai_move(self.board)
+                move = ai_move(self.board, self.ai_mode)
                 if move:
-                    r, c = move
-                    self.board.place(r, c, AI)
-                    self.last_move = (r, c)
-                    
-                    # Kiểm tra AI thắng không
-                    won, cells = self.board.check_win(AI)
-                    if won:
-                        self.game_over = True
-                        self.winner = AI
-                        self.win_cells = cells
-                    # Kiểm tra hòa không
-                    elif self.board.is_full():
-                        self.game_over = True
-                        self.winner = None
-                    else:
-                        # Chuyển lượt cho người chơi
+                    row, col = move
+                    self.board.place(row, col, AI)
+                    self.last_move = (row, col)
+
+                    if not self._finish_turn_if_needed(AI):
                         self.turn = HUMAN
-                
+
                 ai_thinking = False
 
-            # ────────────── Xử lý sự kiện ──────────────
             for event in pygame.event.get():
-                # Đóng cửa sổ
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
 
-                # Bàn phím
                 if event.type == pygame.KEYDOWN:
-                    # Nhấn R để chơi lại
                     if event.key == pygame.K_r:
                         self.reset()
+                    elif event.key == pygame.K_m and not ai_thinking:
+                        self._toggle_ai_mode()
 
-                # Chuột click
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mx, my = event.pos
+                    mouse_x, mouse_y = event.pos
 
-                    # Nhấn nút "Chơi lại"
-                    if hasattr(self, "btn_rect") and self.btn_rect.collidepoint(mx, my):
+                    if hasattr(self, "btn_rect") and self.btn_rect.collidepoint(mouse_x, mouse_y):
                         self.reset()
                         continue
 
-                    # Đánh quân (nếu là lượt người chơi)
+                    if hasattr(self, "mode_btn_rect") and self.mode_btn_rect.collidepoint(mouse_x, mouse_y):
+                        self._toggle_ai_mode()
+                        continue
+
                     if not self.game_over and self.turn == HUMAN:
-                        r, c = self._cell_from_mouse(mx, my)
-                        # Kiểm tra tọa độ hợp lệ và ô trống
-                        if self.board.is_valid(r, c) and self.board.grid[r][c] == EMPTY:
-                            self.board.place(r, c, HUMAN)
-                            self.last_move = (r, c)
-                            
-                            # Kiểm tra người chơi thắng không
-                            won, cells = self.board.check_win(HUMAN)
-                            if won:
-                                self.game_over = True
-                                self.winner = HUMAN
-                                self.win_cells = cells
-                            # Kiểm tra hòa không
-                            elif self.board.is_full():
-                                self.game_over = True
-                                self.winner = None
-                            else:
-                                # Chuyển lượt cho AI
+                        row, col = self._cell_from_mouse(mouse_x, mouse_y)
+                        if self.board.is_valid(row, col) and self.board.grid[row][col] == EMPTY:
+                            self.board.place(row, col, HUMAN)
+                            self.last_move = (row, col)
+
+                            if not self._finish_turn_if_needed(HUMAN):
                                 self.turn = AI
