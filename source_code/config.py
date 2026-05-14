@@ -78,4 +78,4 @@ AI = 2                  # Máy tính (O)
 
 # ─────────────────────────── TIÊU ĐỀ CỬA SỔ ───────────────────────
 
-WINDOW_TITLE = "Caro AI - Minimax / Alpha-Beta (Level 2)"
+WINDOW_TITLE = "Caro AI - Minimax / Alpha-Beta"

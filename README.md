@@ -74,6 +74,11 @@ The AI supports two adversarial search algorithms for a two-player zero-sum game
 - Candidate moves are ordered by distance to the board center before expansion.
 - Both algorithms use the same search depth and evaluation function when compared.
 
+Level 2 improvement notes:
+
+- **Generate only nearby candidate moves**: instead of expanding every empty cell on the board, `Board.get_candidates()` only returns empty cells near existing pieces. This reduces the branching factor and makes both Minimax and Alpha-Beta faster.
+- **Center-first move ordering**: `_ordered_candidates()` sorts candidate moves by distance to the board center before search expansion. This is especially useful for Alpha-Beta because better early moves can help prune more branches.
+
 Main configuration in `source_code/config.py`:
 
 ```python
