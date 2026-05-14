@@ -1,258 +1,147 @@
-"""
-README - Hướng dẫn sử dụng trò chơi Cờ Caro AI
-Caro Game with Pure Minimax AI - User Guide
-"""
+# CaroAI in Python
 
-# ═══════════════════════════════════════════════════════════════════
-#                       CỬ CẢ TRƠNG CARO AI
-#             CARO GAME WITH PURE MINIMAX AI (LEVEL 1)
-# ═══════════════════════════════════════════════════════════════════
+This project is a Caro AI practice assignment for the Artificial Intelligence course. It implements a playable Caro game between a human player and the computer.
 
-## 📋 MÔ TẢ DỰ ÁN / PROJECT DESCRIPTION
+The current version covers **Level 2**: the AI can use either **depth-limited Minimax** or **Alpha-Beta pruning** with the same search depth and heuristic evaluation function.
 
-Đây là trò chơi Cờ Caro (Gomoku) với AI thông minh sử dụng thuật toán Minimax thuần túy.
-Người chơi (X - xanh lam) đối đầu với máy tính (O - đỏ). Thắng khi có 4 quân liên tiếp.
+## 1. Overview
 
-This is a Caro (Gomoku) game where you play against an AI powered by the Pure Minimax algorithm.
-You play as X (light blue) against the computer (O - red). Win by getting 4 in a row.
+- Game: Human vs AI Caro.
+- Interface: Pygame.
+- Board size: 9x9.
+- Human player: `X`.
+- AI player: `O`.
+- Win condition: 4 consecutive pieces horizontally, vertically, or diagonally.
+- The double-block rule is not considered.
+- The game is a draw if the board is full and no player has won.
 
----
+## 2. Project Structure
 
-## 🗂️ CẤU TRÚC TỆP / FILE STRUCTURE
-
-```
-Python_caro_AI/
-├── config.py          # Cấu hình, hằng số, màu sắc
-├── board.py           # Lớp Board - quản lý trạng thái bàn cờ
-├── evaluation.py      # Hàm đánh giá trạng thái (heuristic)
-├── minimax.py         # Thuật toán Minimax cho AI
-├── game.py            # Giao diện Pygame chính
-├── main.py            # Điểm khởi đầu (entry point)
-├── requirements.txt   # Danh sách thư viện cần cài
-└── README.md          # File này
+```text
+23021220_23020544_23021280_CaroAI/
+|-- source_code/
+|   |-- board.py        # Board representation, legal moves, win/draw checking
+|   |-- config.py       # Game settings, colors, search depth
+|   |-- evaluation.py   # Heuristic board evaluation
+|   |-- game.py         # Pygame interface and main game loop
+|   |-- main.py         # Program entry point
+|   `-- minimax.py      # Minimax, Alpha-Beta, and move statistics
+|-- requirements.txt    # Required Python packages
+`-- README.md
 ```
 
-### 📄 Chi tiết từng file:
+## 3. Installation
 
-**config.py**
-- Cấu hình: kích thước bàn cờ (9x9), độ sâu Minimax (3 nước)
-- Bảng màu RGB cho giao diện (nền, lưới, quân, text)
-- Hằng số: EMPTY, HUMAN, AI
+Python 3.8 or newer is recommended.
 
-**board.py**
-- Lớp `Board`: quản lý lưới, quân cờ
-- Phương thức:
-  - `place(r, c, player)`: Đặt quân
-  - `undo()`: Hoàn tác
-  - `check_win(player)`: Kiểm tra thắng
-  - `get_candidates()`: Lấy nước đi ứng cử viên
-  - `_count_dir()`: Đếm quân liên tiếp
-
-**evaluation.py**
-- `score_line()`: Cho điểm một đoạn quân (ví dụ: 3 quân + 2 đầu mở = 5000 điểm)
-- `evaluate()`: Đánh giá toàn bàn cờ (cộng điểm tất cả đoạn quân)
-
-**minimax.py**
-- `minimax()`: Đệ quy tìm nước đi tối ưu (maximizing vs minimizing)
-- `ai_move()`: Chọn nước đi tốt nhất cho AI
-- `stats`: Thống kê (số nút xét, thời gian, giá trị)
-
-**game.py**
-- Lớp `Game`: quản lý vòng lặp trò chơi chính
-- Phương thức:
-  - `draw_board()`: Vẽ bàn cờ và quân
-  - `draw_info()`: Vẽ panel thông tin
-  - `run()`: Vòng lặp chính
-
-**main.py**
-- Hàm `main()`: Khởi tạo Pygame và chạy trò chơi
-
----
-
-## 🚀 CÁCH CHẠY / HOW TO RUN
-
-### Bước 1: Cài đặt Python 3.8+
 ```bash
-# Kiểm tra phiên bản Python
 python --version
-```
-
-### Bước 2: Cài đặt thư viện
-```bash
-# Cài đặt từ requirements.txt
 pip install -r requirements.txt
 ```
 
-### Bước 3: Chạy trò chơi
+Main dependency:
+
+```text
+pygame>=2.0.0
+```
+
+## 4. How to Run
+
+From the repository root, run:
+
 ```bash
-python main.py
+python source_code/main.py
 ```
 
----
+After the game window opens:
 
-## 🎮 CÁCH CHƠI / HOW TO PLAY
+- Click an empty cell to place your `X`.
+- The computer automatically calculates and places its `O`.
+- Press `R` or click the `Restart [R]` button to restart the game.
+- Press `M` or click the `Mode` button to switch the AI mode between Minimax and Alpha-Beta.
 
-- **Lượt của bạn**: Click vào bất kỳ ô trống nào để đặt quân X
-- **Lượt máy**: Máy sẽ tự động tính toán và đặt quân O
-- **Thắng**: Là người đầu tiên đạt 4 quân liên tiếp (ngang, dọc, chéo)
-- **Chơi lại**: Nhấn nút "Chơi lại [R]" hoặc phím R
+## 5. Implemented Algorithms
 
----
+The AI supports two adversarial search algorithms for a two-player zero-sum game:
 
-## 🧠 THUẬT TOÁN MINIMAX / MINIMAX ALGORITHM
+- **Minimax**: explores possible human and computer moves up to a depth limit.
+- **Alpha-Beta pruning**: uses the same Minimax logic but cuts branches when `beta <= alpha`.
+- The computer is the MAX player and chooses the move with the highest evaluation value.
+- The human is the MIN player and is assumed to choose moves that reduce the computer's advantage.
+- If the state is win, loss, or draw, the algorithm returns a terminal value.
+- If the search reaches the depth limit, the algorithm uses the heuristic evaluation function.
+- Candidate moves are generated near existing pieces to reduce the search space.
+- Candidate moves are ordered by distance to the board center before expansion.
+- Both algorithms use the same search depth and evaluation function when compared.
 
-Minimax là một thuật toán tìm kiếm:
+Level 2 improvement notes:
 
-```
-Maximizing Player (AI) ← Tìm nước đi tốt (điểm cao)
-  ↓
-Đệ quy với độ sâu = MAX_DEPTH (3 nước)
-  ↓
-Minimizing Player (Người chơi) ← Giả sử tìm nước đi xấu (điểm thấp) cho AI
-  ↓
-Lặp lại → Tìm nước đi tối ưu bằng cách xem tổ hợp có thể
-```
+- **Generate only nearby candidate moves**: instead of expanding every empty cell on the board, `Board.get_candidates()` only returns empty cells near existing pieces. This reduces the branching factor and makes both Minimax and Alpha-Beta faster.
+- **Center-first move ordering**: `_ordered_candidates()` sorts candidate moves by distance to the board center before search expansion. This is especially useful for Alpha-Beta because better early moves can help prune more branches.
 
-**Ưu điểm:**
-- Đơn giản, dễ hiểu
-- Tính toán tương đối nhanh với độ sâu 3
-
-**Nhược điểm:**
-- Không có Alpha-Beta Pruning (tối ưu hóa)
-- Độ sâu 3 là giới hạn (nếu tăng sẽ quá chậm)
-
----
-
-## 📊 HỆ THỐNG ĐIỂM / SCORING SYSTEM
-
-Cách AI đánh giá trạng thái bàn cờ:
-
-| Tình huống                      | Điểm     | Mô tả                           |
-|--------------------------------|---------|--------------------------------|
-| AI 4 quân liên tiếp (thắng)    | +100,000| Trạng thái thắng               |
-| AI 3 quân + 2 đầu mở          | +5,000  | Rất nguy hiểm                 |
-| AI 3 quân + 1 đầu mở          | +500    | Nguy hiểm vừa                 |
-| AI 2 quân + 2 đầu mở          | +100    | Có tiềm năng                  |
-| Người 3 quân + 2 đầu mở       | -10,000 | Cần chặn ngay                 |
-| Người 3 quân + 1 đầu mở       | -1,000  | Nên chặn                      |
-
-Lưu ý: Chặn người chơi được ưu tiên cao hơn (nhân 2) so với bắt được
-
----
-
-## ⚙️ TUNING & TỐI ƯU HÓA / CONFIGURATION
-
-Bạn có thể chỉnh các tham số trong `config.py`:
+Main configuration in `source_code/config.py`:
 
 ```python
-BOARD_SIZE = 9      # Kích thước bàn (mặc định 9x9)
-WIN_COUNT = 4       # Số quân để thắng (mặc định 4)
-MAX_DEPTH = 3       # Độ sâu Minimax (3 = vừa phải)
-                    # Tăng lên → AI mạnh hơn nhưng chậm hơn
-                    # Giảm xuống → AI yếu hơn nhưng nhanh hơn
+BOARD_SIZE = 9
+WIN_COUNT = 4
+MAX_DEPTH = 3
 ```
 
-Nếu chỉnh `MAX_DEPTH`:
-- `2`: Rất nhanh, nhưng AI yếu
-- `3`: Cân bằng (mặc định)
-- `4`: AI mạnh hơn nhưng chậm (1-2 giây mỗi nước)
-- `5+`: Quá chậm, không khuyến cáo
+## 6. Evaluation Function
 
----
+The evaluation function in `source_code/evaluation.py` scores piece sequences in 4 directions: horizontal, vertical, and the 2 diagonals.
 
-## 📝 GIẢI THÍCH MÃ / CODE WALKTHROUGH
+Main scoring rules:
 
-### Ví dụ 1: Kiểm tra thắng
+| Situation | Score |
+| --- | ---: |
+| Computer has 4 consecutive pieces | +100000 |
+| Human has 4 consecutive pieces | -100000 |
+| Computer has 3 pieces with 2 open ends | +5000 |
+| Computer has 3 pieces with 1 open end | +500 |
+| Computer has 2 pieces with 2 open ends | +100 |
+| Similar human sequences | Negative score, multiplied by 2 to prioritize blocking |
 
-```python
-# Trong board.py
-def check_win(self, player):
-    # Duyệt mỗi ô trên bàn
-    for r in range(self.size):
-        for c in range(self.size):
-            # Kiểm tra 4 hướng từ ô này
-            for dr, dc in [(0,1), (1,0), (1,1), (1,-1)]:
-                # Đếm quân liên tiếp
-                count = 1 + count_forward + count_backward
-                # Nếu >= 4, player thắng
-                if count >= WIN_COUNT:
-                    return True, cells_list
-```
+## 7. Runtime Statistics
 
-### Ví dụ 2: Minimax đệ quy
+After each computer move, the interface displays:
 
-```python
-# Trong minimax.py
-def minimax(board, depth, is_maximizing):
-    # Cơ sở: kiểm tra trạng thái kết thúc
-    if board.check_win(AI):
-        return SCORE_WIN + depth  # Thắng sớm hơn tốt hơn
-    if depth == 0:
-        return evaluate(board)
-    
-    # Đệ quy
-    if is_maximizing:  # AI đi
-        best = -inf
-        for move in candidates:
-            board.place(move, AI)
-            val = minimax(board, depth - 1, False)  # Người đi tiếp
-            board.undo()
-            best = max(best, val)
-    else:  # Người chơi đi
-        best = +inf
-        for move in candidates:
-            board.place(move, HUMAN)
-            val = minimax(board, depth - 1, True)  # AI đi tiếp
-            board.undo()
-            best = min(best, val)
-    return best
-```
+- The selected move.
+- The evaluation value.
+- The search depth.
+- The number of explored states.
+- The running time for the selected algorithm.
+- A comparison row for Minimax and Alpha-Beta on the same board state.
+- The number of Alpha-Beta pruning cuts.
 
----
+These values support the assignment requirement for measuring and comparing search performance.
 
-## 🐛 TROUBLESHOOTING
+## 8. Current Scope
 
-**Lỗi: "ModuleNotFoundError: No module named 'pygame'"**
-```bash
-pip install pygame
-```
+This version covers Level 2 requirements:
 
-**Trò chơi chạy rất chậm**
-- Giảm `MAX_DEPTH` từ 3 xuống 2 trong `config.py`
+- 9x9 board.
+- Alternating turns between human and computer.
+- Invalid moves on occupied cells are rejected.
+- Game ends when a player gets 4 consecutive pieces or the board is full.
+- Depth-limited Minimax is implemented.
+- Alpha-Beta pruning is implemented.
+- The AI mode can be switched between Minimax and Alpha-Beta.
+- Both algorithms are run on the same current board state for comparison.
+- A heuristic evaluation function is implemented.
+- The selected move, value, depth, explored states, and running time are recorded.
 
-**AI không đánh**
-- Kiểm tra console xem có lỗi gì không
-- Thử chạy lại trò chơi
+## 9. Possible Level 3 Extensions
 
----
+- Prepare at least 5 test board states.
+- Compare explored states and running time between Minimax and Alpha-Beta in a table.
+- Test multiple search depths, such as depth 1, 2, and 3.
+- Analyze whether Alpha-Beta chooses the same move as Minimax.
+- Analyze how search depth affects move quality.
+- Discuss strengths, limitations, and possible future improvements.
 
-## 📚 TÀI LIỆU THAM KHẢO / REFERENCES
-
-- Minimax Algorithm: https://en.wikipedia.org/wiki/Minimax
-- Pygame Documentation: https://www.pygame.org/docs/
-- Gomoku Rules: https://en.wikipedia.org/wiki/Gomoku
-
----
-
-## 📝 GHI CHÚ / NOTES
-
-- Mã nguồn có ghi chú tiếng Việt chi tiết
-- Tất cả hàm có docstring giải thích
-- Dễ mở rộng: thêm Alpha-Beta Pruning, lưu trữ transposition table, v.v.
-
----
-
-## 👨‍💻 PHÁT TRIỂN TIẾP THEO / FUTURE IMPROVEMENTS
-
-- [ ] Alpha-Beta Pruning (tối ưu hóa Minimax)
-- [ ] Transposition Table (lưu trữ kết quả đã tính)
-- [ ] Difficulty Level (dễ, trung bình, khó)
-- [ ] Time Control (giới hạn thời gian suy nghĩ)
-- [ ] Undo/Redo (hoàn tác/làm lại nước đi)
-- [ ] Multiplayer (hai người chơi)
-
----
-
-**Tác giả: Caro AI Project**  
-**Phiên bản: 1.0**  
-**Ngày: 2026**
+## 10. References
+- Minimax algorithm: https://en.wikipedia.org/wiki/Minimax
+- Alpha-Beta pruning algorithm: https://en.wikipedia.org/wiki/Alpha%E2%80%93beta_pruning
+- Pygame documentation: https://www.pygame.org/docs/
+- Gomoku rules: https://en.wikipedia.org/wiki/Gomoku

@@ -16,7 +16,7 @@ MAX_DEPTH = 3           # Độ sâu tìm kiếm của Minimax (3 nước)
 # ─────────────────────────── GIAO DIỆN ───────────────────────────
 
 MARGIN = 30             # Lề bàn cờ (khoảng cách từ cạnh cửa sổ)
-INFO_HEIGHT = 150       # Chiều cao panel thông tin dưới bàn cờ
+INFO_HEIGHT = 190       # Chiều cao panel thông tin dưới bàn cờ
 
 # Tự động tính CELL_SIZE theo kích thước màn hình
 # Auto-calculate CELL_SIZE based on screen resolution
@@ -78,4 +78,4 @@ AI = 2                  # Máy tính (O)
 
 # ─────────────────────────── TIÊU ĐỀ CỬA SỔ ───────────────────────
 
-WINDOW_TITLE = "Cờ Caro – Pure Minimax AI (Level 1)"
+WINDOW_TITLE = "Caro AI - Minimax / Alpha-Beta"
