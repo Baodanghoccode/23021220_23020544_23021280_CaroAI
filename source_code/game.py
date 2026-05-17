@@ -38,7 +38,7 @@ from config import (
     WIN_W,
     WINDOW_TITLE,
 )
-from minimax import AI_MODES, ALPHA_BETA, ai_move, stats
+from minimax_with_alphabeta import AI_MODES, ALPHA_BETA, ai_move, stats
 
 
 class Game:
