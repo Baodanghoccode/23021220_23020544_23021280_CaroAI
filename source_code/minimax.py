@@ -129,7 +129,7 @@ def _score_candidate(board, mode, depth, counter):
     raise ValueError(f"Unsupported AI mode: {mode}")
 
 
-def choose_move(board, mode=ALPHA_BETA):
+def choose_move(board, mode=ALPHA_BETA, depth=MAX_DEPTH):
     """
     Choose the best AI move using the requested algorithm.
 
@@ -138,6 +138,8 @@ def choose_move(board, mode=ALPHA_BETA):
     """
     if mode not in AI_MODES:
         raise ValueError(f"Unsupported AI mode: {mode}")
+    if depth < 1:
+        raise ValueError("Search depth must be at least 1")
 
     t0 = time.time()
     counter = {"states": 0, "prunes": 0}
@@ -148,7 +150,7 @@ def choose_move(board, mode=ALPHA_BETA):
 
     for r, c in candidates:
         board.place(r, c, AI)
-        value = _score_candidate(board, mode, MAX_DEPTH - 1, counter)
+        value = _score_candidate(board, mode, depth - 1, counter)
         board.undo()
 
         if value > best_value:
@@ -162,18 +164,18 @@ def choose_move(board, mode=ALPHA_BETA):
         "mode": mode,
         "move": best_move,
         "value": int(best_value),
-        "depth": MAX_DEPTH,
+        "depth": depth,
         "states": counter["states"],
         "prunes": counter["prunes"],
         "time": time.time() - t0,
     }
 
 
-def compare_algorithms(board):
+def compare_algorithms(board, depth=MAX_DEPTH):
     """Run Minimax and Alpha-Beta on the same board state."""
     return {
-        MINIMAX: choose_move(board.copy(), MINIMAX),
-        ALPHA_BETA: choose_move(board.copy(), ALPHA_BETA),
+        MINIMAX: choose_move(board.copy(), MINIMAX, depth),
+        ALPHA_BETA: choose_move(board.copy(), ALPHA_BETA, depth),
     }
 
 
