@@ -18,7 +18,7 @@ from statistics import mean
 
 from board import Board
 from config import AI, EMPTY, HUMAN
-from minimax import ALPHA_BETA, MINIMAX, choose_move
+from minimax_with_alphabeta import ALPHA_BETA, MINIMAX, choose_move
 
 
 DEPTHS = (1, 2, 3)
